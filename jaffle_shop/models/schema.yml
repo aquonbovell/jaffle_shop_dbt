@@ -1,0 +1,93 @@
+version: 2
+
+models:
+  - name: stg_jaffle_shop__customers
+    description: One record per customer
+    columns:
+      - name: customer_id
+        description: Primary key
+        tests:
+          - unique
+          - not_null
+
+  - name: stg_jaffle_shop__orders
+    description: This model cleans up order data
+    columns:
+      - name: order_id
+        description: Primary key
+        tests:
+          - unique
+          - not_null
+      - name: status
+        tests:
+          - accepted_values:
+              values:
+                ["placed", "shipped", "completed", "return_pending", "returned"]
+      - name: order_date
+        tests:
+          - not_null
+      - name: customer_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_jaffle_shop__customers')
+              field: customer_id
+
+  - name: stg_stripe__payments
+    description: This model cleans up payment data
+    columns:
+      - name: payment_id
+        description: Primary key
+        tests:
+          - unique
+          - not_null
+      - name: status
+        tests:
+          - accepted_values:
+              values:
+                ["success", "fail"]
+      - name: created_at
+        tests:
+          - not_null
+      - name: order_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_jaffle_shop__orders')
+              field: order_id
+      - name: payment_method
+        tests:
+          - not_null
+          - accepted_values:
+              values:
+                ["coupon", "bank_transfer", "credit_card", "gift_card"]
+
+  - name: fct_orders
+    description: This model cleans up the orders data and aggregate the amount per order id
+    columns:
+      - name: order_id
+        tests:
+          - not_null
+          - unique
+          - relationships:
+              field: order_id
+              to: ref('stg_jaffle_shop__orders')
+      - name: customer_id
+        tests:
+          - not_null
+          - relationships:
+              field: customer_id
+              to: ref('stg_jaffle_shop__customers')
+      - name: order_date
+        tests:
+          - not_null
+
+  - name: dim_customers
+    description: This model joins the customers with the all the orders they made
+    columns:
+      - name: customer_id
+        tests:
+          - not_null
+          - relationships:
+              field: customer_id
+              to: ref('stg_jaffle_shop__customers')

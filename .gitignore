@@ -1,0 +1,6 @@
+dbt-env
+logs
+jaffle_shop/dbt_modules/
+jaffle_shop/dbt-env/
+jaffle_shop/logs/
+jaffle_shop/target/
